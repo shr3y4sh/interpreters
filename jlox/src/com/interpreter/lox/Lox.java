@@ -22,7 +22,10 @@ public class Lox {
         } else {
             runprompt();
         }
+    }
 
+    static void error(int line, String message) {
+        report(line, "", message);
     }
 
     private static void runprompt() throws IOException {
@@ -56,10 +59,6 @@ public class Lox {
         for (Token token : tokens) {
             System.out.println(token);
         }
-    }
-
-    static void error(int line, String message) {
-        report(line, "", message);
     }
 
     private static void report(int line, String where, String message) {

@@ -1,20 +1,13 @@
 package com.interpreter.lox;
 
+import static com.interpreter.lox.TokenType.*;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.interpreter.lox.TokenType.*;
-
 class Scanner {
-
-    private final String source;
-    private final List<Token> tokens = new ArrayList<>();
-
-    private int start = 0;
-    private int current = 0;
-    private int line = 1;
 
     private static final Map<String, TokenType> keywords;
 
@@ -38,6 +31,16 @@ class Scanner {
         keywords.put("var", VAR);
         keywords.put("while", WHILE);
     }
+
+    private final String source;
+
+    private final List<Token> tokens = new ArrayList<>();
+
+    private int start = 0;
+
+    private int current = 0;
+
+    private int line = 1;
 
     public Scanner(String source) {
         this.source = source;
@@ -107,8 +110,7 @@ class Scanner {
 
             case '/':
                 if (match('/')) {
-                    while (peek() != '\n' && !isAtEnd())
-                        advance();
+                    while (peek() != '\n' && !isAtEnd()) advance();
                 } else {
                     addToken(SLASH);
                 }
@@ -144,15 +146,13 @@ class Scanner {
     }
 
     private void identifier() {
-        while (isAlphaNumeric(peek()))
-            advance();
+        while (isAlphaNumeric(peek())) advance();
 
         String text = source.substring(start, current);
 
         TokenType type = keywords.get(text);
 
-        if (type == null)
-            type = IDENTIFIER;
+        if (type == null) type = IDENTIFIER;
 
         addToken(type);
     }
@@ -169,8 +169,7 @@ class Scanner {
         if (peek() == '.' && isDigit(peekNext())) {
             advance();
 
-            while (isDigit(peek()))
-                advance();
+            while (isDigit(peek())) advance();
         }
 
         addToken(NUMBER, Double.parseDouble(source.substring(start, current)));
@@ -182,8 +181,7 @@ class Scanner {
 
     private void string() {
         while (peek() != '"' && !isAtEnd()) {
-            if (peek() == '\n')
-                line++;
+            if (peek() == '\n') line++;
 
             advance();
         }
@@ -201,25 +199,21 @@ class Scanner {
     }
 
     private char peekNext() {
-        if (current + 1 >= source.length())
-            return '\0';
+        if (current + 1 >= source.length()) return '\0';
 
         return source.charAt(current + 1);
     }
 
     private char peek() {
-        if (isAtEnd())
-            return '\0';
+        if (isAtEnd()) return '\0';
 
         return source.charAt(current);
     }
 
     private boolean match(char expected) {
-        if (isAtEnd())
-            return false;
+        if (isAtEnd()) return false;
 
-        if (source.charAt(current) != expected)
-            return false;
+        if (source.charAt(current) != expected) return false;
 
         current++;
         return true;
