@@ -1,5 +1,7 @@
 package com.interpreter.lox;
 
+import static com.interpreter.lox.TokenType.EOF;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -55,14 +57,24 @@ public class Lox {
     private static void run(String source) {
         var scanner = new Scanner(source);
         List<Token> tokens = scanner.scanTokens();
+        Parser parser = new Parser(tokens);
+        Expr expression = parser.parse();
 
-        for (Token token : tokens) {
-            System.out.println(token);
-        }
+        if (hadError) return;
+
+        System.out.println(new AstPrinter().print(expression));
     }
 
     private static void report(int line, String where, String message) {
         System.err.println("[ line " + line + "] Error " + where + ":" + message);
         hadError = true;
+    }
+
+    public static void error(Token token, String message) {
+        if (token.type == EOF) {
+            report(token.line, " at the end", message);
+        } else {
+            report(token.line, " at '" + token.lexeme + "'", message);
+        }
     }
 }

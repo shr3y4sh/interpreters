@@ -1,7 +1,8 @@
 src/com/interpreter/lox/TokenType.java
 src/com/interpreter/lox/Scanner.java
 src/com/interpreter/lox/Token.java
-src/com/interpreter/lox/Lox.java
 src/com/interpreter/lox/Expr.java
 src/com/interpreter/lox/AstPrinter.java
+src/com/interpreter/lox/Parser.java
+src/com/interpreter/lox/Lox.java
 src/com/interpreter/tool/GenerateAst.java
