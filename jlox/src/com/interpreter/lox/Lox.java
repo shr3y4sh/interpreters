@@ -13,6 +13,9 @@ import java.util.List;
 public class Lox {
 
     static boolean hadError = false;
+    static boolean hadRuntimeError = false;
+
+    private static Interpreter interpreter = new Interpreter();
 
     public static void main(String[] args) throws IOException {
         if (args.length > 1) {
@@ -26,9 +29,31 @@ public class Lox {
         }
     }
 
+    static void error(Token token, String message) {
+        if (token.type == EOF) {
+            report(token.line, " at the end", message);
+        } else {
+            report(token.line, " at '" + token.lexeme + "'", message);
+        }
+    }
+
+    static void runtimeError(RuntimeError e) {
+        System.err.println(e.getMessage() + "\n[line: " + e.token.line + "]");
+        hadRuntimeError = true;
+    }
+
     static void error(int line, String message) {
         report(line, "", message);
     }
+
+    // private static void run(String source) {
+    //     var scanner = new Scanner(source);
+    //     List<Token> tokens = scanner.scanTokens();
+    //
+    //     for (Token token : tokens) {
+    //         System.out.println(token);
+    //     }
+    // }
 
     private static void runprompt() throws IOException {
         var input = new InputStreamReader(System.in);
@@ -49,41 +74,23 @@ public class Lox {
         byte[] bytes = Files.readAllBytes(Paths.get(path));
         run(new String(bytes, Charset.defaultCharset()));
 
-        if (hadError) {
-            System.exit(65);
-        }
+        if (hadError) System.exit(65);
+        if (hadRuntimeError) System.exit(70);
     }
 
     private static void run(String source) {
         var scanner = new Scanner(source);
         List<Token> tokens = scanner.scanTokens();
+        Parser parser = new Parser(tokens);
+        Expr expression = parser.parse();
 
-        for (Token token : tokens) {
-            System.out.println(token);
-        }
+        if (hadError) return;
+
+        interpreter.interpreter(expression);
     }
-
-    // private static void run(String source) {
-    //     var scanner = new Scanner(source);
-    //     List<Token> tokens = scanner.scanTokens();
-    //     Parser parser = new Parser(tokens);
-    //     Expr expression = parser.parse();
-    //
-    //     if (hadError) return;
-    //
-    //     System.out.println(new AstPrinter().print(expression));
-    // }
 
     private static void report(int line, String where, String message) {
         System.err.println("[ line " + line + "] Error " + where + ":" + message);
         hadError = true;
-    }
-
-    public static void error(Token token, String message) {
-        if (token.type == EOF) {
-            report(token.line, " at the end", message);
-        } else {
-            report(token.line, " at '" + token.lexeme + "'", message);
-        }
     }
 }
