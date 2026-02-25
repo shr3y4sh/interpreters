@@ -111,6 +111,8 @@ class Scanner {
             case '/':
                 if (match('/')) {
                     while (peek() != '\n' && !isAtEnd()) advance();
+                } else if (match('*')) {
+                    multilineComment();
                 } else {
                     addToken(SLASH);
                 }
@@ -138,6 +140,26 @@ class Scanner {
                     Lox.error(line, "Unexpected character.");
                 }
                 break;
+        }
+    }
+
+    private void multilineComment() {
+        while (true) {
+            if (isAtEnd()) break;
+
+            if (peek() == '*') {
+                advance();
+                if (peek() == '/') {
+                    advance();
+                    return;
+                }
+                continue;
+            }
+
+            if (peek() == '\n') {
+                line++;
+            }
+            advance();
         }
     }
 
@@ -196,6 +218,12 @@ class Scanner {
         String value = source.substring(start + 1, current - 1);
 
         addToken(STRING, value);
+    }
+
+    private char peekPrevious() {
+        if (current == 0) return source.charAt(current);
+
+        return source.charAt(current - 1);
     }
 
     private char peekNext() {

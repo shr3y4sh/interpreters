@@ -2,3 +2,4 @@
 .vscode/
 bin/
 /jlox/README.md
+/jlox/practice.lox
