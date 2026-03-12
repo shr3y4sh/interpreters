@@ -42,11 +42,11 @@ class Scanner {
 
     private int line = 1;
 
-    public Scanner(String source) {
+    Scanner(String source) {
         this.source = source;
     }
 
-    public List<Token> scanTokens() {
+    List<Token> scanTokens() {
         while (!isAtEnd()) {
             start = current;
             scanToken();
@@ -218,12 +218,6 @@ class Scanner {
         String value = source.substring(start + 1, current - 1);
 
         addToken(STRING, value);
-    }
-
-    private char peekPrevious() {
-        if (current == 0) return source.charAt(current);
-
-        return source.charAt(current - 1);
     }
 
     private char peekNext() {

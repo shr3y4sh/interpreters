@@ -1,19 +1,73 @@
 package com.interpreter.lox;
 
-import com.interpreter.lox.Expr.Binary;
-import com.interpreter.lox.Expr.Grouping;
-import com.interpreter.lox.Expr.Literal;
-import com.interpreter.lox.Expr.Unary;
+import java.util.List;
 
-class Interpreter implements Expr.Visitor<Object> {
+class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
+    private Environment env = new Environment();
 
     @Override
-    public Object visitLiteralExpr(Literal expr) {
+    public Void visitBlockStmt(Stmt.Block stmt) {
+        executeBlock(stmt.statements, new Environment(env));
+        return null;
+    }
+
+    private void executeBlock(List<Stmt> statements, Environment environment) {
+        Environment prev = this.env;
+
+        try {
+            this.env = environment;
+
+            for (var st : statements) {
+                execute(st);
+            }
+        } finally {
+            this.env = prev;
+        }
+    }
+
+    @Override
+    public Object visitAssignExpr(Expr.Assign expr) {
+        Object value = evaluate(expr.value);
+        env.assign(expr.name, expr.value);
+        return value;
+    }
+
+    @Override
+    public Object visitVariableExpr(Expr.Variable expr) {
+        return env.get(expr.name);
+    }
+
+    @Override
+    public Void visitVarStmt(Stmt.Var stmt) {
+        Object value = null;
+
+        if (stmt.initializer != null) {
+            value = evaluate(stmt.initializer);
+        }
+        env.define(stmt.name.lexeme, value);
+        return null;
+    }
+
+    @Override
+    public Void visitExpressionStmt(Stmt.Expression stmt) {
+        evaluate(stmt.expression);
+        return null;
+    }
+
+    @Override
+    public Void visitPrintStmt(Stmt.Print stmt) {
+        Object value = evaluate(stmt.expression);
+        System.out.println(stringify(value));
+        return null;
+    }
+
+    @Override
+    public Object visitLiteralExpr(Expr.Literal expr) {
         return expr.value;
     }
 
     @Override
-    public Object visitBinaryExpr(Binary expr) {
+    public Object visitBinaryExpr(Expr.Binary expr) {
         var left = evaluate(expr.left);
         var right = evaluate(expr.right);
 
@@ -71,12 +125,12 @@ class Interpreter implements Expr.Visitor<Object> {
     }
 
     @Override
-    public Object visitGroupingExpr(Grouping expr) {
+    public Object visitGroupingExpr(Expr.Grouping expr) {
         return evaluate(expr.expression);
     }
 
     @Override
-    public Object visitUnaryExpr(Unary expr) {
+    public Object visitUnaryExpr(Expr.Unary expr) {
         var right = evaluate(expr.right);
 
         switch (expr.operator.type) {
@@ -92,14 +146,18 @@ class Interpreter implements Expr.Visitor<Object> {
         return null;
     }
 
-    void interpreter(Expr expression) {
+    void interpret(List<Stmt> statements) {
         try {
-            Object value = evaluate(expression);
-
-            System.out.println(stringify(value));
+            for (var stmt : statements) {
+                execute(stmt);
+            }
         } catch (RuntimeError e) {
             Lox.runtimeError(e);
         }
+    }
+
+    private void execute(Stmt stmt) {
+        stmt.accept(this);
     }
 
     private String stringify(Object value) {

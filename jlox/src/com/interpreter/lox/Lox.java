@@ -12,7 +12,7 @@ import java.util.List;
 
 public class Lox {
 
-    static boolean hadError = false;
+    static boolean parseError = false;
     static boolean hadRuntimeError = false;
 
     private static Interpreter interpreter = new Interpreter();
@@ -46,15 +46,6 @@ public class Lox {
         report(line, "", message);
     }
 
-    // private static void run(String source) {
-    //     var scanner = new Scanner(source);
-    //     List<Token> tokens = scanner.scanTokens();
-    //
-    //     for (Token token : tokens) {
-    //         System.out.println(token);
-    //     }
-    // }
-
     private static void runprompt() throws IOException {
         var input = new InputStreamReader(System.in);
         var reader = new BufferedReader(input);
@@ -66,7 +57,7 @@ public class Lox {
                 break;
             }
             run(line);
-            hadError = false;
+            parseError = false;
         }
     }
 
@@ -74,23 +65,22 @@ public class Lox {
         byte[] bytes = Files.readAllBytes(Paths.get(path));
         run(new String(bytes, Charset.defaultCharset()));
 
-        if (hadError) System.exit(65);
+        if (parseError) System.exit(65);
         if (hadRuntimeError) System.exit(70);
     }
 
     private static void run(String source) {
-        var scanner = new Scanner(source);
-        List<Token> tokens = scanner.scanTokens();
+        List<Token> tokens = new Scanner(source).scanTokens();
         Parser parser = new Parser(tokens);
-        Expr expression = parser.parse();
+        List<Stmt> stmts = parser.parse();
 
-        if (hadError) return;
+        if (parseError) return;
 
-        interpreter.interpreter(expression);
+        interpreter.interpret(stmts);
     }
 
     private static void report(int line, String where, String message) {
         System.err.println("[ line " + line + "] Error " + where + ":" + message);
-        hadError = true;
+        parseError = true;
     }
 }

@@ -1,12 +1,20 @@
 package com.interpreter.lox;
 
+import com.interpreter.lox.Expr.Assign;
 import com.interpreter.lox.Expr.Binary;
 import com.interpreter.lox.Expr.Grouping;
 import com.interpreter.lox.Expr.Literal;
 import com.interpreter.lox.Expr.Unary;
+import com.interpreter.lox.Expr.Variable;
 import com.interpreter.lox.Expr.Visitor;
 
 public class AstPrinter implements Visitor<String> {
+
+    @Override
+    public String visitVariableExpr(Variable expr) {
+        // TODO Auto-generated method stub
+        return null;
+    }
 
     public static void main(String[] args) {
         Expr expression =
@@ -57,5 +65,11 @@ public class AstPrinter implements Visitor<String> {
         builder.append(")");
 
         return builder.toString();
+    }
+
+    @Override
+    public String visitAssignExpr(Assign expr) {
+        // TODO Auto-generated method stub
+        return null;
     }
 }
