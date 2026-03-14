@@ -1,40 +1,28 @@
 package com.interpreter.lox;
 
+import com.interpreter.lox.Expr.Logical;
+import com.interpreter.lox.Stmt.If;
+
 import java.util.List;
 
 class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     private Environment env = new Environment();
 
     @Override
-    public Void visitBlockStmt(Stmt.Block stmt) {
-        executeBlock(stmt.statements, new Environment(env));
+    public Void visitIfStmt(If stmt) {
+        if (isTruthy(stmt.condition)) {
+            execute(stmt.thenBranch);
+        } else if (stmt.elseBranch != null) {
+            execute(stmt.elseBranch);
+        }
+
         return null;
     }
 
-    private void executeBlock(List<Stmt> statements, Environment environment) {
-        Environment prev = this.env;
-
-        try {
-            this.env = environment;
-
-            for (var st : statements) {
-                execute(st);
-            }
-        } finally {
-            this.env = prev;
-        }
-    }
-
     @Override
-    public Object visitAssignExpr(Expr.Assign expr) {
-        Object value = evaluate(expr.value);
-        env.assign(expr.name, expr.value);
-        return value;
-    }
-
-    @Override
-    public Object visitVariableExpr(Expr.Variable expr) {
-        return env.get(expr.name);
+    public Void visitBlockStmt(Stmt.Block stmt) {
+        executeBlock(stmt.statements, new Environment(env));
+        return null;
     }
 
     @Override
@@ -59,6 +47,18 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         Object value = evaluate(stmt.expression);
         System.out.println(stringify(value));
         return null;
+    }
+
+    @Override
+    public Object visitAssignExpr(Expr.Assign expr) {
+        Object value = evaluate(expr.value);
+        env.assign(expr.name, expr.value);
+        return value;
+    }
+
+    @Override
+    public Object visitVariableExpr(Expr.Variable expr) {
+        return env.get(expr.name);
     }
 
     @Override
@@ -146,6 +146,19 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         return null;
     }
 
+    @Override
+    public Object visitLogicalExpr(Logical expr) {
+        Object left = evaluate(expr.left);
+
+        if (expr.operator.type == TokenType.OR) {
+            if (isTruthy(left)) return left;
+        } else {
+            if (!isTruthy(left)) return left;
+        }
+
+        return evaluate(expr.right);
+    }
+
     void interpret(List<Stmt> statements) {
         try {
             for (var stmt : statements) {
@@ -153,6 +166,20 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
             }
         } catch (RuntimeError e) {
             Lox.runtimeError(e);
+        }
+    }
+
+    private void executeBlock(List<Stmt> statements, Environment environment) {
+        Environment prev = this.env;
+
+        try {
+            this.env = environment;
+
+            for (var st : statements) {
+                execute(st);
+            }
+        } finally {
+            this.env = prev;
         }
     }
 

@@ -3,11 +3,14 @@ program - declaration* EOF ;
 declaration - varDecl | statement ;
 
 statement - exprStmt 
+        | ifStmt
         | printStmt 
         | block ;
 
 block - "{" declaration "}" ;
 
+ifStmt - "if" "(" expression ")" statement
+            ( "else" statement )? ;
 
 varDecl - "var" IDENTIFIER ( "=" expression )? ";" ;
 
@@ -21,6 +24,10 @@ expression - assignment ;
 
 assignment - IDENTIFIER "=" assignment 
         | equality ;
+
+logic_or - logic_and ( "or" logic_and )* ;
+
+logic_and - equality ( "and" equality )* ;
 
 equality - comparison ("!=" | "==") comparison 
         | comparison;
